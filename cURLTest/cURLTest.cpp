@@ -23,7 +23,11 @@
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
+#include <thread>
 
+const char *content;
+
+/*static void*/ 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
 {
 	((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -53,6 +57,57 @@ char* load_file(char const* path)
 	return buffer;
 }
 
+static void one_request_ocsp(int tid)
+{
+	char *base_path = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Save_Response_OCSP_";
+	char *nomor = (char*) malloc(2);
+	sprintf(nomor, "%02d", tid);
+
+	char *file_to_save = (char*)malloc(strlen(base_path) + strlen(nomor) + 4);
+
+	int temp = 0, ptr = 0;
+	while (base_path[temp] != '\0') {                   /* and string two */
+		file_to_save[ptr] = base_path[temp];
+		temp++;
+		ptr++;
+	}
+	temp = 0;
+	while (nomor[temp] != '\0') {                   /* and string two */
+		file_to_save[ptr] = nomor[temp];
+		temp++;
+		ptr++;
+	}
+	file_to_save[ptr] = '.';
+	ptr++;
+	file_to_save[ptr] = 'D';
+	ptr++;
+	file_to_save[ptr] = 'E';
+	ptr++;
+	file_to_save[ptr] = 'R';
+	ptr++;
+	file_to_save[ptr] = '\0';
+
+	std::cout << "[[" << file_to_save << "]]" << std::endl;
+
+	FILE* f_stream;
+	errno_t err;
+	err = fopen_s(&f_stream, file_to_save, "w");
+
+	CURL *curl;
+	struct curl_slist *headers = NULL;
+	headers = curl_slist_append(headers, "Content-Type: application/ocsp-request");
+
+	curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_URL, "http://ca1.govca.id/ejbca/publicweb/status/ocsp");
+	curl_easy_setopt(curl, CURLOPT_POST, (long)1);
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, f_stream);
+	curl_easy_perform(curl); /* ignores error */
+	curl_easy_cleanup(curl);
+
+}
+
 int main()
 {
 	int (WINAPIV * __vsnprintf)(char *, size_t, const char*, va_list) = _vsnprintf;
@@ -67,14 +122,9 @@ int main()
 	std::string readBuffer;
 	const char *filename = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Response_5d3d22c2-6d74-4bdb-9b93-11351fd5cfc6.DER";
 	const char *file_to_send = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Request_5d3d22c2-6d74-4bdb-9b93-11351fd5cfc6.DER";
-
 	const char *file_to_save = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Save_response_OCSP.DER";
-	FILE* f_stream;
-
-	errno_t err;
-	err = fopen_s(&f_stream, file_to_save, "w");
 	
-	const char *content = load_file(file_to_send);
+	content = load_file(file_to_send);
 
 	derbio = BIO_new_file(filename, "rb");
 	resp = d2i_OCSP_RESPONSE_bio(derbio, NULL);
@@ -83,43 +133,27 @@ int main()
 	if (!resp) {
 		std::cout << "Error" << std::endl;
 	}
-	std::cout << "Pembacaan Response Selesai" << std::endl;
-
+	
 	long l = ASN1_ENUMERATED_get(resp->responseStatus);
 	std::cout << l << std::endl;
+	std::cout << "Pembacaan Response Selesai" << std::endl;
 
-	curl = curl_easy_init();
+	const int NUMT = 5;
+	std::thread tid[NUMT];
+	int i;
+	int error;
 
-	struct curl_slist *headers = NULL;
-	headers = curl_slist_append(headers, "Content-Type: application/ocsp-request");
+	curl_global_init(CURL_GLOBAL_ALL);
 
-	if (curl) {
-		curl_easy_setopt(curl, CURLOPT_URL, "http://ca1.govca.id/ejbca/publicweb/status/ocsp");
-		curl_easy_setopt(curl, CURLOPT_POST, (long)1);
-		/* pass our list of custom made headers */
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content);
-		//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-		//curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-		curl_easy_setopt(curl, CURLOPT_WRITEDATA, f_stream);
-		res = curl_easy_perform(curl);
-		curl_easy_cleanup(curl);
-
-		/*std::cout << readBuffer << std::endl;
-
-		BIO *mem = BIO_new(BIO_s_mem());
-		const char * c = readBuffer.c_str();
-		BIO_puts(mem, c);
-
-		resp = d2i_OCSP_RESPONSE_bio(mem, NULL);
-		BIO_free(derbio);
-
-		if (!resp) {
-			std::cout << "Error Retrieving response from URL!" << std::endl;
-		}*/
-
+	for (i = 0; i < NUMT; i++)
+	{
+		tid[i] = std::thread(one_request_ocsp, i);
 	}
 
+	for (i = 0; i < NUMT; i++)
+	{
+		tid[i].join();
+	}
 	
 	system("pause");
 
