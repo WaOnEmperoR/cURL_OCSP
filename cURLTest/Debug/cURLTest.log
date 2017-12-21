@@ -1,8 +1,8 @@
 ﻿  stdafx.cpp
   cURLTest.cpp
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(144): warning C4101: 'error': unreferenced local variable
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(119): warning C4101: 'res': unreferenced local variable
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(118): warning C4101: 'curl': unreferenced local variable
+d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(147): warning C4101: 'error': unreferenced local variable
+d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(120): warning C4101: 'res': unreferenced local variable
+d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(119): warning C4101: 'curl': unreferenced local variable
 d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(116): warning C4101: 'bio_err': unreferenced local variable
   cURLTest.vcxproj -> D:\Tugas PTIK\Certificate Authority\OCSP - 2017\cURLTest\Debug\cURLTest.exe
   cURLTest.vcxproj -> D:\Tugas PTIK\Certificate Authority\OCSP - 2017\cURLTest\Debug\cURLTest.pdb (Full PDB)

@@ -25,7 +25,7 @@
 #include <openssl/x509.h>
 #include <thread>
 
-const char *content;
+const char *content[10];
 
 /*static void*/ 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp)
@@ -66,13 +66,13 @@ static void one_request_ocsp(int tid)
 	char *file_to_save = (char*)malloc(strlen(base_path) + strlen(nomor) + 4);
 
 	int temp = 0, ptr = 0;
-	while (base_path[temp] != '\0') {                   /* and string two */
+	while (base_path[temp] != '\0') {                  
 		file_to_save[ptr] = base_path[temp];
 		temp++;
 		ptr++;
 	}
 	temp = 0;
-	while (nomor[temp] != '\0') {                   /* and string two */
+	while (nomor[temp] != '\0') {                   
 		file_to_save[ptr] = nomor[temp];
 		temp++;
 		ptr++;
@@ -101,7 +101,7 @@ static void one_request_ocsp(int tid)
 	curl_easy_setopt(curl, CURLOPT_URL, "http://ca1.govca.id/ejbca/publicweb/status/ocsp");
 	curl_easy_setopt(curl, CURLOPT_POST, (long)1);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content);
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content[tid]);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, f_stream);
 	curl_easy_perform(curl); /* ignores error */
 	curl_easy_cleanup(curl);
@@ -114,6 +114,7 @@ int main()
 
 	BIO *derbio;
 	BIO *bio_err;
+	const int NUMT = 2;
 
 	CURL *curl;
 	CURLcode res;
@@ -124,8 +125,11 @@ int main()
 	const char *file_to_send = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Request_5d3d22c2-6d74-4bdb-9b93-11351fd5cfc6.DER";
 	const char *file_to_save = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Save_response_OCSP.DER";
 	
-	content = load_file(file_to_send);
-
+	for (int i = 0; i < NUMT; i++)
+	{
+		content[i] = load_file(file_to_send);
+	}
+	
 	derbio = BIO_new_file(filename, "rb");
 	resp = d2i_OCSP_RESPONSE_bio(derbio, NULL);
 	BIO_free(derbio);
@@ -137,8 +141,7 @@ int main()
 	long l = ASN1_ENUMERATED_get(resp->responseStatus);
 	std::cout << l << std::endl;
 	std::cout << "Pembacaan Response Selesai" << std::endl;
-
-	const int NUMT = 5;
+		
 	std::thread tid[NUMT];
 	int i;
 	int error;
