@@ -23,6 +23,8 @@
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
+#include <iostream>
+#include <fstream>
 #include <thread>
 
 const char *content[10];
@@ -32,6 +34,39 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 {
 	((std::string*)userp)->append((char*)contents, size * nmemb);
 	return size * nmemb;
+}
+
+char* strndup(const char* s, size_t len)
+{
+	char *p = (char*) malloc(len+1);
+	memcpy(p, s, len+1);
+
+	return p;
+}
+
+/* the function to invoke as the data recieved */
+static size_t write_callback_func(void *buffer,
+	size_t size,
+	size_t nmemb,
+	void *userp)
+{
+	char **response_ptr = (char**)userp;
+
+	/* assuming the response is a string */
+	*response_ptr = strndup((char*) buffer, (size_t)(size *nmemb));
+
+	return size * nmemb;
+}
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+	size_t written = fwrite(ptr, size, nmemb, stream);
+	return written;
+}
+
+std::string format_account_number(int acct_no) {
+	char buffer[4];
+	std::snprintf(buffer, sizeof(buffer), "%03d", acct_no);
+	return buffer;
 }
 
 char* load_file(char const* path)
@@ -50,9 +85,10 @@ char* load_file(char const* path)
 		{
 			fread(buffer, sizeof(char), length, f);
 		}
-		fclose(f);
+		fclose(f);		
 	}
 	buffer[length] = '\0';
+	fflush(stdout);
 
 	return buffer;
 }
@@ -62,6 +98,8 @@ static void one_request_ocsp(int tid)
 	char *base_path = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Save_Response_OCSP_";
 	char *nomor = (char*) malloc(2);
 	sprintf(nomor, "%02d", tid);
+		
+	std::string readBuffer;
 
 	char *file_to_save = (char*)malloc(strlen(base_path) + strlen(nomor) + 4);
 
@@ -87,11 +125,11 @@ static void one_request_ocsp(int tid)
 	ptr++;
 	file_to_save[ptr] = '\0';
 
-	std::cout << "[[" << file_to_save << "]]" << std::endl;
+	//std::cout << "[[" << file_to_save << "]]" << std::endl;
 
-	FILE* f_stream;
-	errno_t err;
-	err = fopen_s(&f_stream, file_to_save, "w");
+	//FILE* f_stream;
+	//errno_t err;
+	//err = fopen_s(&f_stream, file_to_save, "w");
 
 	CURL *curl;
 	struct curl_slist *headers = NULL;
@@ -102,10 +140,46 @@ static void one_request_ocsp(int tid)
 	curl_easy_setopt(curl, CURLOPT_POST, (long)1);
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, content[tid]);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, f_stream);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+	//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback_func);
+	//curl_easy_setopt(curl, CURLOPT_WRITEDATA, &bufferChar);
+	//curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+	//curl_easy_setopt(curl, CURLOPT_WRITEDATA, f_stream);
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
 	curl_easy_perform(curl); /* ignores error */
 	curl_easy_cleanup(curl);
+	//fclose(f_stream);
+	fflush(stdout);
 
+	std::cout << "---------------------RESPONSE---------------------" << std::endl;
+	std::cout << readBuffer << std::endl;
+	std::cout << readBuffer.size() << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
+
+	std::string extension = ".DER";
+	std::string path_simpan = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\OCSP_Response___" + format_account_number(tid) + extension;
+	std::cout << "Will be saved in : " << path_simpan << std::endl;
+	std::cout << "--------------------------------------------------" << std::endl;
+	
+	std::ofstream outfile(path_simpan, std::ofstream::binary);
+	outfile << readBuffer;
+	
+	//const char * c = readBuffer.c_str();
+	//printf("%s\n", c);
+	//std::cout << "---------------------" << std::endl;
+	////int panjang = (sizeof(char));
+	////panjang = panjang * readBuffer.size();
+	////char *pk = (char*)malloc(panjang);
+	//std::cout << "Alokasi" << sizeof(unsigned char) * readBuffer.size() << std::endl;
+	//unsigned char *bufferChar = (unsigned char*) malloc(sizeof(unsigned char) * readBuffer.size());
+	//for (int i = 0; i < readBuffer.size(); i++)
+	//{
+	//	bufferChar[i] = readBuffer.at(i);
+	//}
+	//std::cout << "---------------------" << std::endl;
+	//printf("%s\n", bufferChar);
+	////std::cout << bufferChar << std::endl;
+	//std::cout << "---------------------" << std::endl;
 }
 
 int main()
@@ -114,14 +188,14 @@ int main()
 
 	BIO *derbio;
 	BIO *bio_err;
-	const int NUMT = 2;
+	const int NUMT = 4;
 
 	CURL *curl;
 	CURLcode res;
 
 	OCSP_RESPONSE *resp = NULL;
 	std::string readBuffer;
-	const char *filename = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Response_5d3d22c2-6d74-4bdb-9b93-11351fd5cfc6.DER";
+	const char *filename = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\OCSP_Response___003.DER";
 	const char *file_to_send = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Request_5d3d22c2-6d74-4bdb-9b93-11351fd5cfc6.DER";
 	const char *file_to_save = "C:\\Users\\Rachmawan\\Documents\\NetBeansProjects\\iOCSP\\Save_response_OCSP.DER";
 	
@@ -142,7 +216,7 @@ int main()
 	std::cout << l << std::endl;
 	std::cout << "Pembacaan Response Selesai" << std::endl;
 		
-	std::thread tid[NUMT];
+	/*std::thread tid[NUMT];
 	int i;
 	int error;
 
@@ -150,13 +224,15 @@ int main()
 
 	for (i = 0; i < NUMT; i++)
 	{
+		one_request_ocsp(i);
+		Sleep(2000);
 		tid[i] = std::thread(one_request_ocsp, i);
-	}
-
+	}*/
+/*
 	for (i = 0; i < NUMT; i++)
 	{
 		tid[i].join();
-	}
+	}*/
 	
 	system("pause");
 
