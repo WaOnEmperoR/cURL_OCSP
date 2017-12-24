@@ -30,12 +30,18 @@
     <ClInclude Include="..\..\curl-7.57.0\include\curl\curl.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="MyUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="cURLTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyUtils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
