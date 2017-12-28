@@ -33,9 +33,6 @@
     <ClInclude Include="MyUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CustomString.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -45,9 +42,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MyUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CustomString.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

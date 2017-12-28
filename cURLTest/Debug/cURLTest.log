@@ -1,10 +1,8 @@
 ﻿  stdafx.cpp
   MyUtils.cpp
-  CustomString.cpp
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\customstring.cpp(9): warning C4091: 'typedef ': ignored on left of 'CustomString' when no variable is declared
   cURLTest.cpp
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(104): warning C4101: 'bio_err': unreferenced local variable
-d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(236): warning C4101: 'error': unreferenced local variable
+d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(68): warning C4101: 'bio_err': unreferenced local variable
+d:\tugas ptik\certificate authority\ocsp - 2017\curltest\curltest\curltest.cpp(195): warning C4101: 'error': unreferenced local variable
   Generating Code...
   cURLTest.vcxproj -> D:\Tugas PTIK\Certificate Authority\OCSP - 2017\cURLTest\Debug\cURLTest.exe
   cURLTest.vcxproj -> D:\Tugas PTIK\Certificate Authority\OCSP - 2017\cURLTest\Debug\cURLTest.pdb (Full PDB)
